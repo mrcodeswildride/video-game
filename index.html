@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Video Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=0.4">
+    <link rel="stylesheet" href="stylesheet.css">
+</head>
+
+<body>
+    <h1>Video Game</h1>
+
+    <div id="container">
+        <div id="playingArea">
+            <div id="ship"></div>
+            <div id="cloud"></div>
+            <div id="plane"></div>
+            <div id="bolt"></div>
+            <div id="dynamite"></div>
+            <div id="explosion"></div>
+            <div id="gameOverMessage">Press enter to play again</div>
+        </div>
+
+        <div id="instructions-score">
+            <p id="instructions">
+                Use the left/right arrows to move, and the up arrow to shoot.
+            </p>
+
+            <p id="score">
+                Score: <span id="scoreValue">0</span>
+            </p>
+        </div>
+    </div>
+
+    <audio id="explosionSound" src="explosion.wav"></audio>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
