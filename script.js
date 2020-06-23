@@ -1,330 +1,239 @@
-var playingArea = document.getElementById("playingArea");
-var ship = document.getElementById("ship");
-var cloud = document.getElementById("cloud");
-var plane = document.getElementById("plane");
-var bolt = document.getElementById("bolt");
-var dynamite = document.getElementById("dynamite");
-var explosion = document.getElementById("explosion");
-var explosionSound = document.getElementById("explosionSound");
-var gameOverMessage = document.getElementById("gameOverMessage");
-var scoreDisplay = document.getElementById("scoreValue");
+let playingArea = document.getElementById(`playingArea`)
+let ship = document.getElementById(`ship`)
+let cloud = document.getElementById(`cloud`)
+let plane = document.getElementById(`plane`)
+let bolt = document.getElementById(`bolt`)
+let dynamite = document.getElementById(`dynamite`)
+let explosion = document.getElementById(`explosion`)
+let playMessage = document.getElementById(`playMessage`)
+let scoreValue = document.getElementById(`scoreValue`)
 
-var playingAreaWidth = playingArea.clientWidth;
-var playingAreaHeight = playingArea.clientHeight;
+let gameStarted = false
+let score = 0
+let lastMissileLaunched
+let intervalId
 
-var shipSpeed = 10;
-var shipWidth = ship.clientWidth;
-var shipHeight = ship.clientHeight;
-var shipX = playingAreaWidth / 2 - shipWidth / 2;
-var shipY = playingAreaHeight - shipHeight;
+document.addEventListener(`keydown`, keyPressed)
 
-var missileSpeed = 10;
-var missileWidth = 16;
-var missileHeight = 49;
-var missileLaunchDelay = 500;
-
-var cloudSpeed = 10;
-var cloudWidth = cloud.clientWidth;
-var cloudHeight = cloud.clientHeight;
-var cloudX = -cloudWidth;
-var cloudY = 0;
-var cloudLaunched = false;
-
-var boltSpeed = 10;
-var boltWidth = bolt.clientWidth;
-var boltHeight = bolt.clientHeight;
-var boltX = -boltWidth;
-var boltY = 0;
-var boltLaunched = false;
-
-var planeSpeed = 10;
-var planeWidth = plane.clientWidth;
-var planeHeight = plane.clientHeight;
-var planeX = playingAreaWidth;
-var planeY = cloudHeight;
-var planeLaunched = false;
-
-var dynamiteSpeed = 10;
-var dynamiteWidth = dynamite.clientWidth;
-var dynamiteHeight = dynamite.clientHeight;
-var dynamiteX = playingAreaWidth;
-var dynamiteY = cloudHeight;
-var dynamiteLaunched = false;
-
-var gameLoopInterval = 50;
-var gameLaunched = true;
-var score = 0;
-var missiles = {};
-var missileCount = 0;
-var lastMissileLaunched = 0;
-
-var gameLoopId = setInterval(gameLoop, gameLoopInterval);
-
-document.addEventListener("keydown", function(event) {
-    var missile;
-    var missileDiv;
-
-    if (gameLaunched) {
-        if (event.keyCode == 37 && shipX > 0) {
-            shipX -= shipSpeed;
-            ship.style.left = shipX + "px";
-        }
-        else if (event.keyCode == 39 && shipX < playingAreaWidth - shipWidth) {
-            shipX += shipSpeed;
-            ship.style.left = shipX + "px";
-        }
-        else if (event.keyCode == 38 && new Date().getTime() > lastMissileLaunched + missileLaunchDelay) {
-            missile = {
-                x: shipX + shipWidth / 2 - missileWidth / 2,
-                y: shipY - missileHeight
-            };
-
-            var missileId = missileCount;
-            missiles[missileId] = missile;
-            missileCount++;
-
-            missileDiv = document.createElement("div");
-            missileDiv.setAttribute("id", missileId);
-            missileDiv.classList.add("missile");
-            missileDiv.style.left = missile.x + "px";
-            missileDiv.style.top = missile.y + "px";
-            playingArea.appendChild(missileDiv);
-
-            lastMissileLaunched = new Date().getTime();
-        }
+function keyPressed(event) {
+  if (!gameStarted) {
+    if (event.keyCode == 13) {
+      startGame()
     }
-    else {
-        if (event.keyCode === 13) {
-            shipX = playingAreaWidth / 2 - shipWidth / 2;
-            ship.style.display = "block";
-            ship.style.left = shipX + "px";
-
-            explosion.style.left = -shipWidth + "px";
-            explosionSound.pause();
-            explosionSound.currentTime = 0;
-
-            gameOverMessage.style.display = "none";
-
-            for (var id in missiles) {
-                missile = missiles[id];
-                missileDiv = document.getElementById(id);
-
-                delete missiles[id];
-                playingArea.removeChild(missileDiv);
-            }
-
-            removeCloud();
-            removeBolt();
-            removePlane();
-            removeDynamite();
-
-            gameLaunched = true;
-            score = 0;
-            scoreDisplay.innerHTML = score;
-            missileCount = 0;
-            lastMissileLaunched = 0;
-            gameLoopId = setInterval(gameLoop, gameLoopInterval);
-        }
+  }
+  else {
+    if (event.keyCode == 37 && ship.offsetLeft > 0) {
+      moveLeft()
     }
-});
+    else if (event.keyCode == 39 && ship.offsetLeft < playingArea.offsetWidth - ship.offsetWidth) {
+      moveRight()
+    }
+    else if (event.keyCode == 38 && Date.now() > lastMissileLaunched + 500) {
+      launchMissile()
+    }
+  }
+}
+
+function startGame() {
+  ship.style.display = `block`
+  ship.style.left = `${playingArea.offsetWidth / 2 - ship.offsetWidth / 2}px`
+
+  cloud.style.display = `none`
+  plane.style.display = `none`
+  bolt.style.display = `none`
+  dynamite.style.display = `none`
+
+  let missiles = document.querySelectorAll(`.missile`)
+
+  for (let missile of missiles) {
+    playingArea.removeChild(missile)
+  }
+
+  explosion.style.display = `none`
+  playMessage.style.display = `none`
+
+  gameStarted = true
+
+  score = 0
+  scoreValue.innerHTML = score
+
+  lastMissileLaunched = 0
+
+  intervalId = setInterval(gameLoop, 50)
+}
 
 function gameLoop() {
-    handleMissles();
-    handleCloud();
-    handleBolt();
-    handlePlane();
-    handleDynamite();
-    checkCollisions();
+  moveCloud()
+  movePlane()
+  moveBolt()
+  moveDynamite()
+  moveMissiles()
 }
 
-function handleMissles() {
-    for (var id in missiles) {
-        var missile = missiles[id];
-        var missileDiv = document.getElementById(id);
-
-        missile.y -= missileSpeed;
-
-        if (missile.y < -missileHeight) {
-            delete missiles[id];
-            playingArea.removeChild(missileDiv);
-        }
-        else {
-            missileDiv.style.top = missile.y + "px";
-        }
+function moveCloud() {
+  if (cloud.style.display == `none`) {
+    if (Math.floor(Math.random() * 20) == 0) {
+      cloud.style.display = `block`
+      cloud.style.left = `${-cloud.offsetWidth}px`
     }
-}
+  }
+  else {
+    cloud.style.left = `${cloud.offsetLeft + 10}px`
 
-function handleCloud() {
-    if (cloudLaunched) {
-        cloudX += cloudSpeed;
-        cloud.style.left = cloudX + "px";
-
-        if (cloudX > playingAreaWidth) {
-            cloudLaunched = false;
-        }
-        else if (!boltLaunched && rollDie(20) == 1) {
-            boltX = cloudX + cloudWidth / 2 - boltWidth / 2;
-            boltY = cloudY + cloudHeight;
-            bolt.style.left = boltX + "px";
-            bolt.style.top = boltY + "px";
-            boltLaunched = true;
-        }
+    if (cloud.offsetLeft >= playingArea.offsetWidth) {
+      cloud.style.display = `none`
     }
-    else if (rollDie(20) == 1) {
-        cloudX = -cloudWidth;
-        cloudLaunched = true;
+    else if (bolt.style.display == `none` && Math.floor(Math.random() * 20) == 0) {
+      bolt.style.display = `block`
+      bolt.style.left = `${cloud.offsetLeft + cloud.offsetWidth / 2 - bolt.offsetWidth / 2}px`
+      bolt.style.top = `${cloud.offsetTop + cloud.offsetHeight}px`
     }
+  }
 }
 
-function handleBolt() {
-    if (boltLaunched) {
-        boltX += boltSpeed;
-        boltY += boltSpeed;
-        bolt.style.left = boltX + "px";
-        bolt.style.top = boltY + "px";
-
-        if (boltX > playingAreaWidth || boltY > playingAreaHeight) {
-            boltLaunched = false;
-        }
+function movePlane() {
+  if (plane.style.display == `none`) {
+    if (Math.floor(Math.random() * 20) == 0) {
+      plane.style.display = `block`
+      plane.style.left = `${playingArea.offsetWidth}px`
     }
-}
+  }
+  else {
+    plane.style.left = `${plane.offsetLeft - 10}px`
 
-function handlePlane() {
-    if (planeLaunched) {
-        planeX -= planeSpeed;
-        plane.style.left = planeX + "px";
-
-        if (planeX < -planeWidth) {
-            planeLaunched = false;
-        }
-        else if (!dynamiteLaunched && rollDie(20) == 1) {
-            dynamiteX = planeX + planeWidth / 2 - dynamiteWidth / 2;
-            dynamiteY = planeY + planeHeight;
-            dynamite.style.left = dynamiteX + "px";
-            dynamite.style.top = dynamiteY + "px";
-            dynamiteLaunched = true;
-        }
+    if (plane.offsetLeft <= -plane.offsetWidth) {
+      plane.style.display = `none`
     }
-    else if (rollDie(20) == 1) {
-        planeX = playingAreaWidth;
-        planeLaunched = true;
+    else if (dynamite.style.display == `none` && Math.floor(Math.random() * 20) == 0) {
+      dynamite.style.display = `block`
+      dynamite.style.left = `${plane.offsetLeft + plane.offsetWidth / 2 - dynamite.offsetWidth / 2}px`
+      dynamite.style.top = `${plane.offsetTop + plane.offsetHeight}px`
     }
+  }
 }
 
-function handleDynamite() {
-    if (dynamiteLaunched) {
-        dynamiteX -= dynamiteSpeed;
-        dynamiteY += dynamiteSpeed;
-        dynamite.style.left = dynamiteX + "px";
-        dynamite.style.top = dynamiteY + "px";
+function moveBolt() {
+  if (bolt.style.display == `block`) {
+    bolt.style.left = `${bolt.offsetLeft + 10}px`
+    bolt.style.top = `${bolt.offsetTop + 10}px`
 
-        if (dynamiteX < -dynamiteWidth || dynamiteY > playingAreaHeight) {
-            dynamiteLaunched = false;
-        }
+    if (bolt.offsetLeft >= playingArea.offsetWidth || bolt.offsetTop >= playingArea.offsetHeight) {
+      bolt.style.display = `none`
     }
-}
-
-function checkCollisions() {
-    for (var id in missiles) {
-        var missile = missiles[id];
-        var missileTouchingCloud = cloudLaunched && touching(missile.x, missile.y, missileWidth, missileHeight, cloudX, cloudY, cloudWidth, cloudHeight);
-        var missileTouchingBolt = boltLaunched && touching(missile.x, missile.y, missileWidth, missileHeight, boltX, boltY, boltWidth, boltHeight);
-        var missileTouchingPlane = planeLaunched && touching(missile.x, missile.y, missileWidth, missileHeight, planeX, planeY, planeWidth, planeHeight);
-        var missileTouchingDynamite = dynamiteLaunched && touching(missile.x, missile.y, missileWidth, missileHeight, dynamiteX, dynamiteY, dynamiteWidth, dynamiteHeight);
-
-        if (missileTouchingCloud) {
-            removeMissile(id);
-            removeCloud();
-            score++;
-            scoreDisplay.innerHTML = score;
-        }
-
-        if (missileTouchingBolt) {
-            removeMissile(id);
-            removeBolt();
-            score++;
-            scoreDisplay.innerHTML = score;
-        }
-
-        if (missileTouchingPlane) {
-            removeMissile(id);
-            removePlane();
-            score++;
-            scoreDisplay.innerHTML = score;
-        }
-
-        if (missileTouchingDynamite) {
-            removeMissile(id);
-            removeDynamite();
-            score++;
-            scoreDisplay.innerHTML = score;
-        }
+    else if (touching(ship, bolt)) {
+      shipHit(bolt)
     }
+  }
+}
 
-    var boltTouchingShip = boltLaunched && touching(boltX, boltY, boltWidth, boltHeight, shipX, shipY, shipWidth, shipHeight);
-    var dynamiteTouchingShip = dynamiteLaunched && touching(dynamiteX, dynamiteY, dynamiteWidth, dynamiteHeight, shipX, shipY, shipWidth, shipHeight);
+function moveDynamite() {
+  if (dynamite.style.display == `block`) {
+    dynamite.style.left = `${dynamite.offsetLeft - 10}px`
+    dynamite.style.top = `${dynamite.offsetTop + 10}px`
 
-    if (boltTouchingShip) {
-        removeBolt();
-        gameOver();
+    if (dynamite.offsetLeft <= -dynamite.offsetWidth || dynamite.offsetTop >= playingArea.offsetHeight) {
+      dynamite.style.display = `none`
     }
-
-    if (dynamiteTouchingShip) {
-        removeDynamite();
-        gameOver();
+    else if (touching(ship, dynamite)) {
+      shipHit(dynamite)
     }
+  }
 }
 
-function removeMissile(id) {
-    var missileDiv = document.getElementById(id);
-    delete missiles[id];
-    playingArea.removeChild(missileDiv);
+function moveMissiles() {
+  let missiles = document.querySelectorAll(`.missile`)
+
+  for (let missile of missiles) {
+    missile.style.top = `${missile.offsetTop - 10}px`
+
+    if (missile.offsetTop <= -missile.offsetHeight) {
+      playingArea.removeChild(missile)
+    }
+    else if (touching(missile, cloud)) {
+      missileHit(missile, cloud)
+    }
+    else if (touching(missile, plane)) {
+      missileHit(missile, plane)
+    }
+    else if (touching(missile, bolt)) {
+      missileHit(missile, bolt)
+    }
+    else if (touching(missile, dynamite)) {
+      missileHit(missile, dynamite)
+    }
+  }
 }
 
-function removeCloud() {
-    cloudX = -cloudWidth;
-    cloud.style.left = cloudX + "px";
-    cloudLaunched = false;
+function moveLeft() {
+  ship.style.left = `${ship.offsetLeft - 10}px`
+
+  if (touching(ship, bolt)) {
+    shipHit(bolt)
+  }
+  else if (touching(ship, dynamite)) {
+    shipHit(dynamite)
+  }
 }
 
-function removeBolt() {
-    boltX = -boltWidth;
-    boltY = 0;
-    bolt.style.left = boltX + "px";
-    bolt.style.top = boltY + "px";
-    boltLaunched = false;
+function moveRight() {
+  ship.style.left = `${ship.offsetLeft + 10}px`
+
+  if (touching(ship, bolt)) {
+    shipHit(bolt)
+  }
+  else if (touching(ship, dynamite)) {
+    shipHit(dynamite)
+  }
 }
 
-function removePlane() {
-    planeX = playingAreaWidth;
-    plane.style.left = planeX + "px";
-    planeLaunched = false;
+function launchMissile() {
+  missile = document.createElement(`img`)
+  missile.src = `missile.png`
+  missile.classList.add(`missile`)
+  missile.style.left = `${ship.offsetLeft + ship.offsetWidth / 2 - 8}px`
+  missile.style.top = `${ship.offsetTop - 49}px`
+  playingArea.appendChild(missile)
+
+  lastMissileLaunched = Date.now()
 }
 
-function removeDynamite() {
-    dynamiteX = playingAreaWidth;
-    dynamiteY = cloudHeight;
-    dynamite.style.left = dynamiteX + "px";
-    dynamite.style.top = dynamiteY + "px";
-    dynamiteLaunched = false;
+function missileHit(missile, object) {
+  playingArea.removeChild(missile)
+  object.style.display = `none`
+
+  score++
+  scoreValue.innerHTML = score
 }
 
-function gameOver() {
-    ship.style.display = "none";
+function shipHit(object) {
+  object.style.display = `none`
 
-    explosion.style.left = shipX + "px";
-    explosionSound.play();
+  explosion.style.display = `block`
+  explosion.style.left = `${ship.offsetLeft}px`
 
-    gameOverMessage.style.display = "block";
+  ship.style.display = `none`
 
-    gameLaunched = false;
-    clearInterval(gameLoopId);
+  playMessage.style.display = `block`
+  playMessage.innerHTML = `Press enter to play again`
+
+  gameStarted = false
+
+  clearInterval(intervalId)
 }
 
-function touching(x1, y1, width1, height1, x2, y2, width2, height2) {
-    return x1 + width1 >= x2 && x1 <= x2 + width2 && y1 + height1 >= y2 && y1 <= y2 + height2;
-}
+function touching(object1, object2) {
+  let object1Left = object1.offsetLeft
+  let object1Right = object1.offsetLeft + object1.offsetWidth
+  let object1Top = object1.offsetTop
+  let object1Bottom = object1.offsetTop + object1.offsetHeight
 
-function rollDie(numSides) {
-    return Math.floor(Math.random() * numSides) + 1;
+  let object2Left = object2.offsetLeft
+  let object2Right = object2.offsetLeft + object2.offsetWidth
+  let object2Top = object2.offsetTop
+  let object2Bottom = object2.offsetTop + object2.offsetHeight
+
+  let touchingHorizontally = object1Left <= object2Right && object1Right >= object2Left
+  let touchingVertically = object1Top <= object2Bottom && object1Bottom >= object2Top
+
+  return touchingHorizontally && touchingVertically
 }

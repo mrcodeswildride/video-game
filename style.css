@@ -1,0 +1,64 @@
+body {
+  background-color: beige;
+}
+
+#playingArea,
+#statusBar {
+  width: 800px;
+}
+
+#playingArea {
+  height: 400px;
+  background-color: lightblue;
+  border-bottom: 30px solid blue;
+  position: relative;
+  overflow: hidden;
+}
+
+#playingArea > img {
+  position: absolute;
+}
+
+#ship,
+#cloud,
+#plane,
+#bolt,
+#dynamite,
+#explosion {
+  display: none;
+}
+
+#ship {
+  top: 368px;
+}
+
+#cloud {
+  top: 0;
+}
+
+#plane {
+  top: 60px;
+}
+
+#explosion {
+  top: 293px;
+}
+
+#playMessage {
+  font-size: 30px;
+  text-align: center;
+  line-height: 400px;
+}
+
+#statusBar {
+  font-size: 24px;
+  overflow: auto;
+}
+
+#instructions {
+  float: left;
+}
+
+#scoreParagraph {
+  float: right;
+}
