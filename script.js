@@ -16,6 +16,8 @@ let intervalId
 document.addEventListener(`keydown`, keyPressed)
 
 function keyPressed(event) {
+  event.preventDefault()
+
   if (!gameStarted) {
     if (event.keyCode == 13) {
       startGame()
@@ -43,10 +45,10 @@ function startGame() {
   bolt.style.display = `none`
   dynamite.style.display = `none`
 
-  let missiles = document.querySelectorAll(`.missile`)
+  let missiles = playingArea.querySelectorAll(`.missile`)
 
   for (let missile of missiles) {
-    playingArea.removeChild(missile)
+    missile.remove()
   }
 
   explosion.style.display = `none`
@@ -141,13 +143,13 @@ function moveDynamite() {
 }
 
 function moveMissiles() {
-  let missiles = document.querySelectorAll(`.missile`)
+  let missiles = playingArea.querySelectorAll(`.missile`)
 
   for (let missile of missiles) {
     missile.style.top = `${missile.offsetTop - 10}px`
 
     if (missile.offsetTop <= -missile.offsetHeight) {
-      playingArea.removeChild(missile)
+      missile.remove()
     }
     else if (touching(missile, cloud)) {
       missileHit(missile, cloud)
@@ -198,7 +200,7 @@ function launchMissile() {
 }
 
 function missileHit(missile, object) {
-  playingArea.removeChild(missile)
+  missile.remove()
   object.style.display = `none`
 
   score++
