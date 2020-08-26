@@ -234,8 +234,8 @@ function touching(object1, object2) {
   let object2Top = object2.offsetTop
   let object2Bottom = object2.offsetTop + object2.offsetHeight
 
-  let touchingHorizontally = object1Left <= object2Right && object1Right >= object2Left
-  let touchingVertically = object1Top <= object2Bottom && object1Bottom >= object2Top
+  let xLinesUp = object1Left <= object2Right && object1Right >= object2Left
+  let yLinesUp = object1Top <= object2Bottom && object1Bottom >= object2Top
 
-  return touchingHorizontally && touchingVertically
+  return xLinesUp && yLinesUp
 }
