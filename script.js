@@ -22,15 +22,15 @@ function keyPressed(event) {
     if (event.keyCode == 13) {
       startGame()
     }
-  }
-  else {
+  } else {
     if (event.keyCode == 37 && ship.offsetLeft > 0) {
       moveLeft()
-    }
-    else if (event.keyCode == 39 && ship.offsetLeft < playingArea.offsetWidth - ship.offsetWidth) {
+    } else if (
+      event.keyCode == 39 &&
+      ship.offsetLeft < playingArea.offsetWidth - ship.offsetWidth
+    ) {
       moveRight()
-    }
-    else if (event.keyCode == 38 && Date.now() > lastMissileLaunched + 500) {
+    } else if (event.keyCode == 38 && Date.now() > lastMissileLaunched + 500) {
       launchMissile()
     }
   }
@@ -60,7 +60,6 @@ function startGame() {
   scoreValue.innerHTML = score
 
   lastMissileLaunched = 0
-
   intervalId = setInterval(gameLoop, 50)
 }
 
@@ -78,14 +77,12 @@ function moveCloud() {
       cloud.style.display = `block`
       cloud.style.left = `${-cloud.offsetWidth}px`
     }
-  }
-  else {
+  } else {
     cloud.style.left = `${cloud.offsetLeft + 10}px`
 
     if (cloud.offsetLeft >= playingArea.offsetWidth) {
       cloud.style.display = `none`
-    }
-    else if (bolt.style.display == `none` && Math.floor(Math.random() * 20) == 0) {
+    } else if (bolt.style.display == `none` && Math.floor(Math.random() * 20) == 0) {
       bolt.style.display = `block`
       bolt.style.left = `${cloud.offsetLeft + cloud.offsetWidth / 2 - bolt.offsetWidth / 2}px`
       bolt.style.top = `${cloud.offsetTop + cloud.offsetHeight}px`
@@ -99,16 +96,16 @@ function movePlane() {
       plane.style.display = `block`
       plane.style.left = `${playingArea.offsetWidth}px`
     }
-  }
-  else {
+  } else {
     plane.style.left = `${plane.offsetLeft - 10}px`
 
     if (plane.offsetLeft <= -plane.offsetWidth) {
       plane.style.display = `none`
-    }
-    else if (dynamite.style.display == `none` && Math.floor(Math.random() * 20) == 0) {
+    } else if (dynamite.style.display == `none` && Math.floor(Math.random() * 20) == 0) {
       dynamite.style.display = `block`
-      dynamite.style.left = `${plane.offsetLeft + plane.offsetWidth / 2 - dynamite.offsetWidth / 2}px`
+      dynamite.style.left = `${
+        plane.offsetLeft + plane.offsetWidth / 2 - dynamite.offsetWidth / 2
+      }px`
       dynamite.style.top = `${plane.offsetTop + plane.offsetHeight}px`
     }
   }
@@ -121,8 +118,7 @@ function moveBolt() {
 
     if (bolt.offsetLeft >= playingArea.offsetWidth || bolt.offsetTop >= playingArea.offsetHeight) {
       bolt.style.display = `none`
-    }
-    else if (touching(ship, bolt)) {
+    } else if (touching(ship, bolt)) {
       shipHit(bolt)
     }
   }
@@ -133,10 +129,12 @@ function moveDynamite() {
     dynamite.style.left = `${dynamite.offsetLeft - 10}px`
     dynamite.style.top = `${dynamite.offsetTop + 10}px`
 
-    if (dynamite.offsetLeft <= -dynamite.offsetWidth || dynamite.offsetTop >= playingArea.offsetHeight) {
+    if (
+      dynamite.offsetLeft <= -dynamite.offsetWidth ||
+      dynamite.offsetTop >= playingArea.offsetHeight
+    ) {
       dynamite.style.display = `none`
-    }
-    else if (touching(ship, dynamite)) {
+    } else if (touching(ship, dynamite)) {
       shipHit(dynamite)
     }
   }
@@ -150,17 +148,13 @@ function moveMissiles() {
 
     if (missile.offsetTop <= -missile.offsetHeight) {
       missile.remove()
-    }
-    else if (touching(missile, cloud)) {
+    } else if (touching(missile, cloud)) {
       missileHit(missile, cloud)
-    }
-    else if (touching(missile, plane)) {
+    } else if (touching(missile, plane)) {
       missileHit(missile, plane)
-    }
-    else if (touching(missile, bolt)) {
+    } else if (touching(missile, bolt)) {
       missileHit(missile, bolt)
-    }
-    else if (touching(missile, dynamite)) {
+    } else if (touching(missile, dynamite)) {
       missileHit(missile, dynamite)
     }
   }
@@ -171,8 +165,7 @@ function moveLeft() {
 
   if (touching(ship, bolt)) {
     shipHit(bolt)
-  }
-  else if (touching(ship, dynamite)) {
+  } else if (touching(ship, dynamite)) {
     shipHit(dynamite)
   }
 }
@@ -182,8 +175,7 @@ function moveRight() {
 
   if (touching(ship, bolt)) {
     shipHit(bolt)
-  }
-  else if (touching(ship, dynamite)) {
+  } else if (touching(ship, dynamite)) {
     shipHit(dynamite)
   }
 }

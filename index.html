@@ -1,38 +1,29 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>Video Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=0.4" />
+    <link href="style.css" rel="stylesheet" />
+    <link href="missile.png" rel="prefetch" />
+    <script src="script.js" defer></script>
+  </head>
 
-<head>
-	<title>Video Game</title>
-	<meta name="viewport" content="width=device-width, initial-scale=0.4">
-	<link href="style.css" rel="stylesheet">
-	<link href="missile.png" rel="prefetch">
-	<script src="script.js" defer>
+  <body>
+    <h1>Video Game</h1>
 
-	</script>
-</head>
+    <div id="playingArea">
+      <img src="ship.png" id="ship" />
+      <img src="cloud.png" id="cloud" />
+      <img src="plane.png" id="plane" />
+      <img src="bolt.png" id="bolt" />
+      <img src="dynamite.png" id="dynamite" />
+      <img src="explosion.png" id="explosion" />
+      <div id="playMessage">Press enter to play</div>
+    </div>
 
-<body>
-	<h1>Video Game</h1>
-
-	<div id="playingArea">
-		<img src="ship.png" id="ship">
-    <img src="cloud.png" id="cloud">
-    <img src="plane.png" id="plane">
-    <img src="bolt.png" id="bolt">
-    <img src="dynamite.png" id="dynamite">
-    <img src="explosion.png" id="explosion">
-    <div id="playMessage">Press enter to play</div>
-  </div>
-
-  <div id="statusBar">
-    <p id="instructions">
-      Use left/right arrows to move, and up arrow to shoot.
-    </p>
-
-    <p id="scoreParagraph">
-      Score: <span id="scoreValue">0</span>
-    </p>
-  </div>
-</body>
-
+    <div id="statusBar">
+      <p id="instructions">Use left/right arrows to move, and up arrow to shoot.</p>
+      <p id="scoreParagraph">Score: <span id="scoreValue">0</span></p>
+    </div>
+  </body>
 </html>
